@@ -117,7 +117,7 @@ def create_app(test_config=None):
   '''
 
   @app.route('/questions/<int:questionId>', methods=["DELETE"])
-  def delete_todo(questionId):
+  def delete_question(questionId):
 
     question = Question.query.filter(Question.id == questionId).one_or_none()
     

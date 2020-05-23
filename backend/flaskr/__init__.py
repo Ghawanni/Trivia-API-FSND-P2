@@ -17,7 +17,8 @@ def create_app(test_config=None):
   setup_db(app)
   
   '''
-  @DONE: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
+  @DONE: Set up CORS. Allow '*' for origins. Delete the sample 
+  route after completing the TODOs
   '''
   CORS(app,resources={r"*": {"origins": "*"}})
 
@@ -148,7 +149,8 @@ def create_app(test_config=None):
     # if we're searching for a term 
     if request.args:
       search_term = (request.args['term'])
-      search_result = Question.query.filter(func.lower(Question.question).contains(search_term.lower())).all()
+      search_result = Question.query.filter(func.lower(Question.question)\
+        .contains(search_term.lower())).all()
       
       if len(search_result) == 0:
         abort(422)
@@ -203,8 +205,10 @@ def create_app(test_config=None):
   '''
   @app.route('/categories/<int:categoryId>/questions', methods=["GET"])
   def get_questions_by_category(categoryId):
-    questions_by_category = Question.query.filter(Question.category==categoryId).all()
-    formatted_questions = [question.format() for question in questions_by_category]
+    questions_by_category = Question.query\
+      .filter(Question.category==categoryId).all()
+    formatted_questions = [question\
+      .format() for question in questions_by_category]
     current_category = Category.query.get(categoryId)
     if(len(questions_by_category) == 0):
       abort(404)
@@ -229,22 +233,32 @@ def create_app(test_config=None):
   @app.route('/quizzes', methods=["POST"])
   def start_quiz():
     quiz_category = request.json['quiz_category']
-    previous_questions = request.json['previous_questions'] # frontend will send ids of previous questions
+    # frontend will send ids of previous questions
+    previous_questions = request.json['previous_questions'] 
     possible_questions = []
 
+    # check if the category is valid
+    if quiz_category['id'] > len(Category.query.all()):
+      abort(400)
     # handle case for all categories
     if quiz_category['id'] == 0:
-      possible_questions = Question.query.filter(not_(Question.id.in_(previous_questions))).all()
+      possible_questions = Question.query\
+        .filter(not_(Question.id.in_(previous_questions))).all()
     elif int(quiz_category['id']) > 0:
       category_id = int(quiz_category['id'])
-      possible_questions = Question.query.filter(Question.category == category_id).\
-                                          filter(not_(Question.id.in_(previous_questions))).all()
-
+      possible_questions = Question.query.filter(Question.category == category_id)\
+        .filter(not_(Question.id.in_(previous_questions))).all()
 
     if len(possible_questions) == 0:
-      abort(422)
+      # in this case we have no questions to return
+      return jsonify({
+        'success': True,
+        'question': None
+      })
     else:
-      formatted_questions = [question.format() for question in possible_questions]
+      # we have something to return
+      formatted_questions = [question\
+        .format() for question in possible_questions]
       return jsonify({
         'success': True,
         'question': random.choice(formatted_questions)
@@ -272,6 +286,13 @@ def create_app(test_config=None):
       'message': 'cannot process request'
     }), 422
 
+  @app.errorhandler(400)
+  def bad_request(error):
+    return jsonify({
+      'success': False,
+      'error': 400,
+      'message': 'Bad request'
+    }), 400
   
   return app
 

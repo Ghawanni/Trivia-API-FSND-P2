@@ -98,3 +98,225 @@ createdb trivia_test
 psql trivia_test < trivia.psql
 python test_flaskr.py
 ```
+
+
+# API Reference
+
+----
+
+- Base URL: currently, this backend only runs locally at port 5000. So kindly use *127.0.0.1:5000* to connect to end points for this backend
+- This application does not require any **authentication**, you're good to go
+
+## Error Handling
+
+Errors returned from this backend are all returned in the following format:
+```
+{
+  'success': False,
+  'error': 404,
+  'message': 'resource not found'
+}
+```
+
+There are 3 possible error responses the API could return, here's each possible response and it's meaning:
+
+- *400*: Bad Request
+- *404*: Not Found
+- *422*: Cannot Proccess Request
+
+
+## Endpoints
+
+### **GET /categories**
+- returns all categories in the database
+- the indecies start from 1
+- sample request `curl localhost:5000/categories`
+```JSON
+{
+  "categories": {
+    "1": "Science",
+    "2": "Art",
+    "3": "Geography",
+    "4": "History",
+    "5": "Entertainment",
+    "6": "Sports"
+  },
+  "success": true
+}
+```
+
+### **GET /questions**
+
+- returns all questions in the system
+- questions are paginated 10/page
+- can accept *page* query string to specify page number
+- Sample `curl localhost:5000/questions`
+```JSON
+{
+  "categories": {
+    "1": "Science",
+    "2": "Art",
+    "3": "Geography",
+    "4": "History",
+    "5": "Entertainment",
+    "6": "Sports"
+  },
+  "current_category": "",
+  "questions": [
+    {
+      "answer": "Apollo 13",
+      "category": 5,
+      "difficulty": 4,
+      "id": 2,
+      "question": "What movie earned Tom Hanks his third straight Oscar nomination, in 1996?"
+    },
+    {
+      "answer": "Tom Cruise",
+      "category": 5,
+      "difficulty": 4,
+      "id": 4,
+      "question": "What actor did author Anne Rice first denounce, then praise in the role of her beloved Lestat?"
+    },
+    {
+      "answer": "Maya Angelou",
+      "category": 4,
+      "difficulty": 2,
+      "id": 5,
+      "question": "Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?"
+    },
+    {
+      "answer": "Edward Scissorhands",
+      "category": 5,
+      "difficulty": 3,
+      "id": 6,
+      "question": "What was the title of the 1990 fantasy directed by Tim Burton about a young man with multi-bladed appendages?"
+    },
+.
+.
+.
+  ],
+  "success": true,
+  "total_questions": 19
+}
+```
+
+
+
+### **DELETE /questions/<int:questionId>**
+
+- deletes a question based on the question id
+- sample `curl localhost:5000/questions/4`
+```JSON
+{
+  "success": true
+}
+```
+
+
+### **POST /questions**
+- can have two modes
+  - create questions
+    - requires body with the following attributes
+      - question (string)
+      - answer (string)
+      - category (integer)
+      - difficulty (integer)
+    - example: `curl -H "Content-Type: application json" -X POST --data '{"question": "What international movie won an Oscar in 2020", "answer": "Parasite", "category": 5, "difficulty": 2}' localhost:5000/questions`
+```JSON
+  {
+  "question": {
+    "answer": "Parasite",
+    "category": 5,
+    "difficulty": 2,
+    "id": 24,
+    "question": "What international movie won an Oscar in 2020"
+  },
+  "success": true
+  }
+```
+- You can also search based on a search term which is passed as query parameter `curl -X POST localhost:5000?term=movie`
+- this will return all questions with the word "**movie**" in the following format:
+  
+```JSON
+{
+  "current_category": "",
+  "questions": [
+    {
+      "answer": "Apollo 13",
+      "category": 5,
+      "difficulty": 4,
+      "id": 2,
+      "question": "What movie earned Tom Hanks his third straight Oscar nomination, in 1996?"
+    }
+  ],
+  "success": true,
+  "total_questions": 19
+}
+```
+
+
+### **GET /categories/<int:categoryId>/questions**
+- this endpoint will get questions in a specific category only
+- the category id is passed in the url path (an integer)
+- sample `curl localhost:5000/categories/4/questions`
+```JSON
+{
+  "current_category": {
+    "id": 4,
+    "type": "History"
+  },
+  "questions": [
+    {
+      "answer": "Maya Angelou",
+      "category": 4,
+      "difficulty": 2,
+      "id": 5,
+      "question": "Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?"
+    },
+    {
+      "answer": "Muhammad Ali",
+      "category": 4,
+      "difficulty": 1,
+      "id": 9,
+      "question": "What boxer's original name is Cassius Clay?"
+    },
+    {
+      "answer": "George Washington Carver",
+      "category": 4,
+      "difficulty": 2,
+      "id": 12,
+      "question": "Who invented Peanut Butter?"
+    },
+    {
+      "answer": "Scarab",
+      "category": 4,
+      "difficulty": 4,
+      "id": 23,
+      "question": "Which dung beetle was worshipped by the ancient Egyptians?"
+    }
+  ],
+  "success": true,
+  "total_questions": 20
+}
+```
+
+### **POST /quizzes**
+- this endpoint will return a a question to be displayed based on parameters sent in the body
+- this body to this endpoint should contain the follownig:
+  - _quiz_category[integer]_ : this JSON object should contain an attribute id which will identify which category we want to get questions from. **pass 0 for all categories**
+  - _previous_questions[integer array]_ : this array is supposed to include integers for question ids that are already displayed to the user. So that none of those questions is returned again in the same quiz
+- sample: 
+`curl -H "Content-Type: application/json" -X POST --data '{ "quiz_category": {"id":0},  "previous_questions": [2,4,8] }' localhost:5000/quizzes`
+
+```JSON
+{
+  "question": {
+    "answer": "Alexander Fleming",
+    "category": 1,
+    "difficulty": 3,
+    "id": 21,
+    "question": "Who discovered penicillin?"
+  },
+  "success": true
+}
+```

@@ -65,7 +65,8 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['success'], True)
         self.assertTrue(data['question'])
     def test_create_question_failed(self):
-        res = self.client().post('/questions', json={'not_correct_params': False})
+        res = self.client().post('/questions',\
+             json={'not_correct_params': False})
         data = json.loads(res.data)
 
         self.assertEqual(data['error'], 422)
@@ -100,7 +101,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['success'], False)
 
     
-    def get_questions_by_category_test(self):
+    def test_get_questions_by_category(self):
         res = self.client().get('/categories/1/questions')
         data = json.loads(res.data)
 
@@ -109,12 +110,46 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(data['questions'])
         self.assertTrue(data['total_questions'])
         self.assertTrue(data['current_category'])
-    def get_questions_by_category_test_failed(self):
-        res = sef.client().get('/categories/1/questions', json={'something_wrong': 'I shouldn\'t be here'})
+    def test_get_questions_by_category_failed(self):
+        res = self.client().get('/categories/11/questions', \
+            json={'something_wrong': 'I shouldn\'t be here'})
         data  = json.loads(res.data)
         
         self.assertEqual(data['error'], 404)
         self.assertEqual(data['success'], False)
+
+    
+    def test_start_quiz(self):
+        res = self.client().post('quizzes',\
+            json={'quiz_category': {'id': 3},
+            'previous_questions': [4,2,8]})
+        data = json.loads(res.data)
+        previous_questions = [4,2,8]
+
+        self.assertEqual(res.status_code, 200)
+        self.assertTrue(data['success'])
+        self.assertTrue(data['question'])
+        self.assertTrue(data['question']['id'] not in previous_questions)
+    def test_start_quiz_all_categories(self):
+        res = self.client().post('quizzes',\
+            json={'quiz_category': {'id': 0},
+            'previous_questions': [4,2,8]})
+        data = json.loads(res.data)
+        previous_questions = [4,2,8]
+
+        self.assertEqual(res.status_code, 200)
+        self.assertTrue(data['success'])
+        self.assertTrue(data['question'])
+        self.assertTrue(data['question']['id'] not in previous_questions)
+    def test_start_quiz_failed(self):
+        res = self.client().post('quizzes',\
+            json={'quiz_category': {'id': 12},
+            'previous_questions': []})
+        data = json.loads(res.data)
+
+        self.assertFalse(data['success'])
+        self.assertEqual(data['error'], 400)
+
 
 # Make the tests conveniently executable
 if __name__ == "__main__":

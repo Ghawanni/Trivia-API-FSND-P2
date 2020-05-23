@@ -238,7 +238,7 @@ def create_app(test_config=None):
     possible_questions = []
 
     # check if the category is valid
-    if quiz_category['id'] > len(Category.query.all()):
+    if int(quiz_category['id']) > len(Category.query.all()):
       abort(400)
     # handle case for all categories
     if quiz_category['id'] == 0:
